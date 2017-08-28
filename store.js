@@ -1,9 +1,6 @@
-'use strict'
+'use strict';
 
 const debug = require('debug')('db-plumbing-map');
-const Patch = require('typed-patch');
-
-
 
 function defaultComparator(key, a, b) {
     if (key(a) < key(b)) return -1;
@@ -96,7 +93,7 @@ class Store {
     * @returns a promise that resolves to true if the object is removed, false otherwise.
     */
     remove(key)  { 
-        if (! this.idMap,get(key) === undefined) {
+        if (! this.idMap.get(key) === undefined) {
             this.idMap.delete(key);
             return Promise.resolve(true);
         }
@@ -114,7 +111,7 @@ class Store {
                 if (items.length === 0) 
                     return false;
                 else {
-                    for (item in items) this.idMap.delete(item.uid);
+                    for (let item in items) this.idMap.delete(item.uid);
                     return true;
                 }
             });
