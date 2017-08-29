@@ -1,7 +1,7 @@
 /** @module db-plumbing-map
  *
  */
- 'use strict';
+'use strict';
 
 const debug = require('debug')('db-plumbing-map');
 
