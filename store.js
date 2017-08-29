@@ -1,26 +1,50 @@
-'use strict';
+/** @module db-plumbing-map
+ *
+ */
+ 'use strict';
 
 const debug = require('debug')('db-plumbing-map');
 
+/** Default comparison operation.
+ *
+ * @param key {Function{} function that extracts a key value (number or string) from a stored object
+ * @param a First object
+ * @param b Second object
+ * @returns -1, 1, 0 depending on whether a < b, b < a, or a == b
+ *
+ */
 function defaultComparator(key, a, b) {
     if (key(a) < key(b)) return -1;
     if (key(a) > key(b)) return 1;
     return 0;
 }
 
+/** Utility function used to inject log operations into promise chain
+ *
+ * @param e value to log
+ * @returns e
+ */
 function logValue(e) {
     debug('lv',e);
     return e[1];
 }
 
+/** Error type (used when find() cannot return)
+*
+*/
 class DoesNotExist extends Error {
+
+    /** Constructor
+    *
+    * @param key key for which an item cannot be found
+    */
     constructor(key) { super(`${key} does not exist`); this.key = key; }
 }
 
 /** In-memory document store.
  *
- * Essentially just some utility functions wrapping an ES6 Map.
- *
+ * Essentially just some utility functions wrapping an ES6 Map. Other implementations (db-plumbing-mongo etc) have the
+ * same signature and should work as a drop-in replacement.
  */
 class Store {
 
@@ -119,7 +143,8 @@ class Store {
 
     /** Execute multiple update operations on the store
     *
-    * @param patch { Patch.Op } Information to update in patch format
+    * @param patch { Patch.Operation } Information to update in patch format. 
+    * @see [Typed Patch](https://www.npmjs.com/package/typed-patch)
     */
     bulk(patch) {
         debug('bulk', patch);
@@ -133,5 +158,6 @@ class Store {
     }
 }
 
+/** the public API of this module. */
 module.exports = Store;
 
