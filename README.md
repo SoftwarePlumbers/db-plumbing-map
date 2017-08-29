@@ -18,4 +18,4 @@ The store supports remove, find by criteria, and remove by criteria operations. 
 
 This implementation is intended primarily as a test stub for applications using db-plumbing-mongo or db-plumbing-rest.
 
-For the latest API documentation see [The Software Plumbers Site](http://docs.softwareplumbers.com/typed-patch/master)
+For the latest API documentation see [The Software Plumbers Site](http://docs.softwareplumbers.com/db-plumbing-map/master)
