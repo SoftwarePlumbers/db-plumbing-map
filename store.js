@@ -48,8 +48,6 @@ class DoesNotExist extends Error {
  */
 class Store {
 
-    static get DoesNotExist() { return DoesNotExist; }
-
     /** Constructor.
     * 
     * Only the first parameter is mandatory. Default behavior is to look for an attribute uid in the object to 
@@ -166,5 +164,5 @@ class Store {
 }
 
 /** the public API of this module. */
-module.exports = Store;
+module.exports = { Store, DoesNotExist };
 
