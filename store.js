@@ -133,6 +133,7 @@ class Store {
     *
     * @param index {Function} a function that takes a value and an object from the store and returns true or false
     * @param a value that determines which objects are removed.
+    * @param a promise that resolves to true if at least one item has been deleted.
     */ 
     removeAll(index, value) {
         return this.findAll(index,value)
@@ -150,6 +151,7 @@ class Store {
     *
     * @param patch { Patch.Operation } Information to update in patch format. 
     * @see [Typed Patch](https://www.npmjs.com/package/typed-patch)
+    * @returns a promise that resolves to the number of items updated.
     */
     bulk(patch) {
         debug('bulk', patch);
