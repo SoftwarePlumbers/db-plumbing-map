@@ -91,6 +91,11 @@ class Store {
 
     /** Find objects by index
     *
+    * Index is, by convention, an named function (value, item) => boolean and the result of store.findAll(index,value)
+    * should be equivalent to store.all().filter(item => index(value, item)). However, other implementations of store
+    * may optimize this algorithm to use a better algorithm than a simple linear search. The distinct 'findAll' method
+    * allows for that.
+    *
     * @param index {Function} A function that takes a value and a stored object and returns true or false
     * @returns A promise of an array containing all elements for which the function returns true for the given value
     */ 
@@ -154,7 +159,7 @@ class Store {
         this.sorted = true;
         debug('bulk - after', this.idMap);
 
-        return patch.data.length;
+        return Promise.resolve(patch.data.length);
     }
 }
 
