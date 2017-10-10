@@ -1,6 +1,7 @@
 
 const { Store, DoesNotExist } = require( '../store');
 const Patch = require('typed-patch');
+const { Query, $ } = require('abstract-query');
 const expect = require('chai').expect;
 const debug = require('debug')('db-plumbing-map~tests');
 const Ops = Patch.Operations;
@@ -14,7 +15,7 @@ class Simple {
     static fromJSON({uid,a,b}) { return new Simple(uid,a,b); }
 }
 
-function byA(a, simple) { return simple.a == a; }
+const byA = Query.from({ a : $.a });
 
 describe('Store', () => {
 
@@ -31,13 +32,14 @@ describe('Store', () => {
             
         });
 
-        it('creates multiple objects in store and finds by index', (done) => {
+        it('creates multiple objects in store and finds by query', (done) => {
 
             let store = new Store(Simple, o=>o.uid);
             store.update(new Simple(1,'hello','world'))
                 .then(() => store.update(new Simple(2, 'hello','friend')))
                 .then(() => store.update(new Simple(3, 'goodbye', 'Mr. Chips')))
-                .then(() => store.findAll(byA, 'hello'))
+                .then(() => store.findAll(byA, { a :'hello' }))
+                .then(stream => stream.toArray())
                 .then(result=> {
                         expect(result).to.have.length(2);
                         expect(result[0].b).to.equal('world');

@@ -1,6 +1,6 @@
 {
   "name": "db-plumbing-map",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Simple in-memory database based on ES6 Map",
   "main": "store.js",
   "scripts": {
@@ -32,7 +32,11 @@
     "mocha": "^3.5.0"
   },
   "dependencies": {
-    "debug": "^3.0.1",
-    "typed-patch": "^0.2.7"
+    "abstract-query": "^0.1.9",
+    "debug": "^3.1.0",
+    "eslint": "^4.8.0",
+    "jsdoc": "^3.5.5",
+    "mocha": "^3.5.3",
+    "typed-patch": "^0.2.11"
   }
 }

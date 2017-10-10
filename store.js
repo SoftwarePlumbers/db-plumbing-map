@@ -4,13 +4,15 @@
 'use strict';
 
 const debug = require('debug')('db-plumbing-map');
+const { AsyncStream } = require('iterator-plumbing');
+const { Query } = require('abstract-query');
 
 /** Default comparison operation.
  *
- * @param key {Function{} function that extracts a key value (number or string) from a stored object
- * @param a First object
- * @param b Second object
- * @returns -1, 1, 0 depending on whether a < b, b < a, or a == b
+ * @param key {Function} function that extracts a key value (number or string) from a stored object
+ * @param a {Object} First object
+ * @param b {Object} Second object
+ * @returns {boolean} -1, 1, 0 depending on whether a < b, b < a, or a == b
  *
  */
 function defaultComparator(key, a, b) {
@@ -21,6 +23,7 @@ function defaultComparator(key, a, b) {
 
 /** Utility function used to inject log operations into promise chain
  *
+ * @private
  * @param e value to log
  * @returns e
  */
@@ -56,8 +59,8 @@ class Store {
     *
     *
     * @param type {Function} a constructor (perhaps a base class constructor) for elements in this store.
-    * @param key {Function} a function that extracts a unique key from objects in this store
-    * @param comparator {Function} a function that compares two objects in this store
+    * @param [key] {Function} a function that extracts a unique key from objects in this store
+    * @param [comparator] {Function} a function that compares two objects in this store
     */ 
     constructor(type, key = e=>e.uid, comparator = (a,b) => defaultComparator(key,a,b)) {
         this.idMap = new Map();
@@ -69,8 +72,8 @@ class Store {
 
     /** Find an object by its unique key
     *
-    * @param key Unique object identifier
-    * @returns A promise, either resovled with the object stored for the given key, or rejected with a DoesNotExist error.
+    * @param  key {string|number} Unique object identifier
+    * @returns {Promise} A promise, either resovled with the object stored for the given key, or rejected with a DoesNotExist error.
     */
     find(key) { 
         debug('find', key);
@@ -80,32 +83,28 @@ class Store {
 
     /** Get all objects in the store
     *
-    * @returns a promise resovled with an array contianing all values in the store
+    * @returns {BaseAsyncStream} an asyncronous stream that will return all the stored items
     */
     get all() {
         debug('all');
-        return Promise.resolve(Array.from(this.idMap.values()));
+        return AsyncStream.from(this.idMap).map(([k,v])=>v);
     }
 
-    /** Find objects by index
-    *
-    * Index is, by convention, an named function (value, item) => boolean and the result of store.findAll(index,value)
-    * should be equivalent to store.all().filter(item => index(value, item)). However, other implementations of store
-    * may optimize this algorithm to use a better algorithm than a simple linear search. The distinct 'findAll' method
-    * allows for that.
-    *
-    * @param index {Function} A function that takes a value and a stored object and returns true or false
-    * @returns A promise of an array containing all elements for which the function returns true for the given value
+    /** Find objects by query
+    * 
+    * @param query {Query} A query object
+    * @param [parameters] {Object} Supplies parameters to the query
+    * @returns {BaseAsyncStream} An async stream containing all elements for which the query predicate returns true for the given parameters
     */ 
-    findAll(index, value)  { 
-        debug('findAll', index, value);
-        return this.all.then(all => all.filter(item => index(value, item))); 
+    findAll(query, parameters = {})  { 
+        debug('findAll', query, parameters);
+        return this.all.filter(query.bind(parameters).predicate);
     }
 
     /** Update or add an object in the store.
     *
-    * @param object to add or update.
-    * @returns a resolved promise.
+    * @param {Object} object to add or update.
+    * @returns {Promise}                                                                                                            a resolved promise.
     */
     update(object) { 
         debug('Update',object);
@@ -116,8 +115,8 @@ class Store {
 
     /** Remove an object from the store.
     *
-    * @param key unique identifier of object to remove.
-    * @returns a promise that resolves to true if the object is removed, false otherwise.
+    * @param key {Object} unique identifier of object to remove.
+    * @returns {Promise<boolean>} a promise that resolves to true if the object is removed, false otherwise.
     */
     remove(key)  { 
         if (! this.idMap.get(key) === undefined) {
@@ -129,12 +128,12 @@ class Store {
 
     /** Remove multiple objects from the store
     *
-    * @param index {Function} a function that takes a value and an object from the store and returns true or false
-    * @param a value that determines which objects are removed.
-    * @param a promise that resolves to true if at least one item has been deleted.
+    * @param query {Query} A query object
+    * @param [parameters] {Object} Supplies parameters to the query
+    * @param {Promise<boolean>} a promise that resolves to true if at least one item has been deleted.
     */ 
-    removeAll(index, value) {
-        return this.findAll(index,value)
+    removeAll(query, parameters) {
+        return this.findAll(query, parameters)
             .then(items => { 
                 if (items.length === 0) 
                     return false;
@@ -149,7 +148,7 @@ class Store {
     *
     * @param patch { Patch.Operation } Information to update in patch format. 
     * @see [Typed Patch](https://www.npmjs.com/package/typed-patch)
-    * @returns a promise that resolves to the number of items updated.
+    * @returns {Promise<number>} a promise that resolves to the number of items updated.
     */
     bulk(patch) {
         debug('bulk', patch);
